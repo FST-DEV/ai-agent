@@ -1,0 +1,11 @@
+# Gmail Configuration
+GMAIL_USER=your-email@gmail.com
+GMAIL_PASSWORD=your-app-password
+RECIPIENT_EMAIL=your-email@gmail.com
+
+# Hugging Face API (Optional - for enhanced AI generation)
+HUGGINGFACE_TOKEN=your-huggingface-token
+
+# Flask Configuration
+FLASK_ENV=production
+SECRET_KEY=your-secret-key-here

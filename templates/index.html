@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .generate-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .result-section {
+            margin-bottom: 20px;
+        }
+
+        .result-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .fact-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖 AI Agent</div>
+        <div class="subtitle">Generate YouTube Shorts content with AI</div>
+        
+        <div class="input-group">
+            <input type="text" id="topicInput" class="input-field" placeholder="Enter your topic (e.g., 'Quantum Physics', 'Ancient Rome', 'Space Exploration')" maxlength="100">
+        </div>
+        
+        <button id="generateBtn" class="generate-btn">Generate Content</button>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Generating amazing content for you...</p>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const topicInput = document.getElementById('topicInput');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+
+        generateBtn.addEventListener('click', async () => {
+            const topic = topicInput.value.trim();
+            
+            if (!topic) {
+                showError('Please enter a topic');
+                return;
+            }
+
+            // Show loading
+            generateBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(data.content, topic, data.email_sent);
+                } else {
+                    showError(data.error || 'Something went wrong');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            } finally {
+                generateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        function showResult(content, topic, emailSent) {
+            const emailStatus = emailSent ? 
+                '<div class="success-message">✅ Content generated and email sent successfully!</div>' :
+                '<div class="error-message">⚠️ Content generated but email failed to send.</div>';
+
+            result.innerHTML = `
+                ${emailStatus}
+                <h3>Generated Content for: "${topic}"</h3>
+                
+                <div class="result-section">
+                    <h4>🎬 Video Script (2-3 minutes)</h4>
+                    <div class="fact-item" style="white-space: pre-line; font-family: monospace; font-size: 0.9rem;">${content.script}</div>
+                </div>
+                
+                <div class="result-section">
+                    <h4>📺 YouTube Shorts Content</h4>
+                    <div class="fact-item"><strong>Video Title:</strong> ${content.video_name}</div>
+                    <div class="fact-item"><strong>Description:</strong> ${content.description}</div>
+                    <div class="fact-item"><strong>Meta Tags:</strong> ${content.meta_tags}</div>
+                </div>
+                
+                <div class="result-section">
+                    <h4>🖼️ AI Image Generation Prompts (9:16 vertical)</h4>
+                    ${content.image_prompts.map((prompt, index) => {
+                        const labels = ['INTRO', 'FACT 1', 'FACT 2', 'FACT 3', 'FACT 4', 'FACT 5', 'OUTRO'];
+                        return `<div class="fact-item"><strong>${labels[index]}:</strong> ${prompt}</div>`;
+                    }).join('')}
+                </div>
+                
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy All Content</button>
+            `;
+            
+            result.style.display = 'block';
+        }
+
+        function showError(message) {
+            result.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            result.style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            const content = result.innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy All Content';
+                }, 2000);
+            });
+        }
+
+        // Enter key support
+        topicInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
